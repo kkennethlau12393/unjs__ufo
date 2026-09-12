@@ -1,0 +1,22 @@
+# abloh.yml - read from the PR merge base, so changes are reviewed like code.
+# Keys: https://abloh.dev/docs#config
+
+# % of mechanical breaks in changed lines your tests must catch.
+threshold: 70
+
+# true: below threshold fails the check. Blocks merges only if also marked
+# required in branch protection.
+enforce: true
+
+# The job in your own CI that Abloh's step rides. Abloh reads your workflows to
+# pick it and proves the choice by running there; change it to move the step.
+setup:
+  job: .github/workflows/ci.yml::ci
+
+# Rebuild recipe for the proof container. Comments name the source file.
+environment:
+  runtimeImage: node:20.20.2-bookworm-slim@sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0 # Node 20.20.2 (node-version 20 in your CI), pinned to the digest abloh holds for it
+  installDirectory: .
+  setup: .abloh/setup.sh # written by init and yours to edit. Every cold run executes it step by step
+  testCommand: corepack pnpm test # scripts.test in package.json
+  sealedTestCommand: npx --no-install vitest run --typecheck --reporter=json # runs vitest alone; scripts.test is gated by lint
